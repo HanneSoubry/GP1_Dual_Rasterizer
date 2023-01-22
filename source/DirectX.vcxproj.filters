@@ -8,9 +8,17 @@
     <Filter Include="Misc">
       <UniqueIdentifier>{72056cb6-72a2-42b7-b05e-376f1ddd957e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Meshes&amp;Textures">
+      <UniqueIdentifier>{030f428c-1bbd-4eda-a939-ff8341802f75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects">
+      <UniqueIdentifier>{2ddc5dd0-4528-4576-8644-9325f263a216}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rasterizers">
+      <UniqueIdentifier>{79bc5b9a-466f-482b-852d-912d0e22e949}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Renderer.h" />
     <ClInclude Include="Vector3.h">
       <Filter>Math</Filter>
     </ClInclude>
@@ -36,10 +44,36 @@
     <ClInclude Include="ColorRGB.h">
       <Filter>Math</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Meshes&amp;Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Meshes&amp;Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Meshes&amp;Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Effect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="EffectShader.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectTransparency.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterizerHardware.h">
+      <Filter>Rasterizers</Filter>
+    </ClInclude>
+    <ClInclude Include="SettingsStruct.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="RasterizerSoftware.h">
+      <Filter>Rasterizers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Vector3.cpp">
       <Filter>Math</Filter>
     </ClCompile>
@@ -56,5 +90,27 @@
       <Filter>Math</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Texture.cpp">
+      <Filter>Meshes&amp;Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Meshes&amp;Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Effect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="EffectTransparency.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="EffectShader.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="RasterizerHardware.cpp">
+      <Filter>Rasterizers</Filter>
+    </ClCompile>
+    <ClCompile Include="RasterizerSoftware.cpp">
+      <Filter>Rasterizers</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

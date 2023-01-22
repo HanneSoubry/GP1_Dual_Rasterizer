@@ -22,3 +22,9 @@
 // Framework Headers
 #include "Timer.h"
 #include "Math.h"
+
+// std::cout colors
+#define COUT_COLOR_RESET   "\033[0m"
+#define COUT_COLOR_YELLOW  "\033[33m"
+#define COUT_COLOR_GREEN   "\033[32m"
+#define COUT_COLOR_MAGENTA "\033[35m"

@@ -28,7 +28,7 @@ int main(int argc, char* args[])
 	const uint32_t height = 480;
 
 	SDL_Window* pWindow = SDL_CreateWindow(
-		"DirectX - ***Insert Name/Class***",
+		"Dual Rasterizer - 2DAE15 Soubry Hanne",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		width, height, 0);
@@ -43,6 +43,7 @@ int main(int argc, char* args[])
 	//Start loop
 	pTimer->Start();
 	float printTimer = 0.f;
+	bool printFPS = true;
 	bool isLooping = true;
 	while (isLooping)
 	{
@@ -59,6 +60,43 @@ int main(int argc, char* args[])
 				//Test for a key
 				//if (e.key.keysym.scancode == SDL_SCANCODE_X)
 				break;
+			case SDL_KEYDOWN:
+				// shared
+				if (e.key.keysym.scancode == SDL_SCANCODE_F1)
+					pRenderer->ToggleSoftwareOrHardware();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F2)
+					pRenderer->ToggleRotation();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F9)
+					pRenderer->CycleCullMode();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F10)
+					pRenderer->ToggleBackgroundColor();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F11)
+				{
+					std::cout << COUT_COLOR_YELLOW;
+					std::cout << "**(SHARED) Print FPS = ";
+
+					printFPS = !printFPS;
+
+					if (printFPS)
+						std::cout << "ON\n";
+					else
+						std::cout << "OFF\n";
+					std::cout << COUT_COLOR_RESET;
+				}
+				// only hardware
+				if (e.key.keysym.scancode == SDL_SCANCODE_F3)
+					pRenderer->ToggleFireMesh();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F4)
+					pRenderer->CycleSampleStates();
+				// only software
+				if (e.key.keysym.scancode == SDL_SCANCODE_F5)
+					pRenderer->CycleShadingMode();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F6)
+					pRenderer->ToggleNormalMap();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F7)
+					pRenderer->ToggleDepthBuffer();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F8)
+					pRenderer->ToggleBoundingBox();
 			default: ;
 			}
 		}
@@ -71,11 +109,14 @@ int main(int argc, char* args[])
 
 		//--------- Timer ---------
 		pTimer->Update();
-		printTimer += pTimer->GetElapsed();
-		if (printTimer >= 1.f)
+		if (printFPS)
 		{
-			printTimer = 0.f;
-			std::cout << "dFPS: " << pTimer->GetdFPS() << std::endl;
+			printTimer += pTimer->GetElapsed();
+			if (printTimer >= 1.f)
+			{
+				printTimer = 0.f;
+				std::cout << "dFPS: " << pTimer->GetdFPS() << std::endl;
+			}
 		}
 	}
 	pTimer->Stop();
