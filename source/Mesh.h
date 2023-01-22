@@ -63,7 +63,20 @@ namespace dae
 								ID3D11InputLayout** pInputLayout,
 								ID3D11Buffer** pVertexBuffer,
 								ID3D11Buffer** pIndexBuffer,
-								uint32_t* numIndices);
+								uint32_t& numIndices);
+
+		// access for software
+		void GetSoftwareInfo(	Matrix** pWorldMatrix, 
+								std::vector<Vertex>** pVertices,
+								std::vector<uint32_t>** pIndices,
+								PrimitiveTopology& primitiveTopology,
+								std::vector<Vertex_Out>** pVertices_out, 
+								Texture** pDiffuseMap, 
+								Texture** pNormalMap, 
+								Texture** pSpecularMap, 
+								Texture** pGlossinessMap);
+
+		bool IsOnlyForHardware() { return m_OnlyHardware; }
 
 	private:
 		// shared
@@ -87,7 +100,7 @@ namespace dae
 		std::vector<Vertex> m_Vertices{};
 		std::vector<uint32_t> m_Indices{};
 		PrimitiveTopology m_PrimitiveTopology{ PrimitiveTopology::TriangleList };
-		std::vector<Vertex_Out>* m_Vertices_out{};
+		std::vector<Vertex_Out> m_Vertices_out{};
 
 		Texture* m_pDiffuseMap{ nullptr };
 		Texture* m_pNormalMap{ nullptr };

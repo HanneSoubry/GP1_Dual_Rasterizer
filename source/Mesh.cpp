@@ -175,11 +175,26 @@ void dae::Mesh::SetGlossinessMap(Texture* pGlossinessTexture)
 	m_pGlossinessMap = pGlossinessTexture;
 }
 
-void dae::Mesh::GetHardwareInfo(Effect** pEffect, ID3D11InputLayout** pInputLayout, ID3D11Buffer** pVertexBuffer, ID3D11Buffer** pIndexBuffer, uint32_t* numIndices)
+void dae::Mesh::GetHardwareInfo(Effect** pEffect, ID3D11InputLayout** pInputLayout, ID3D11Buffer** pVertexBuffer, ID3D11Buffer** pIndexBuffer, uint32_t& numIndices)
 {
 	*pEffect = m_pEffect;
 	*pInputLayout = m_pInputLayout;
 	*pVertexBuffer = m_pVertexBuffer;
 	*pIndexBuffer = m_pIndexBuffer;
-	*numIndices = m_NumIndices;
+	numIndices = m_NumIndices;
 }
+
+void dae::Mesh::GetSoftwareInfo(Matrix** pWorldMatrix, std::vector<Vertex>** pVertices, std::vector<uint32_t>** pIndices, PrimitiveTopology& primitiveTopology, std::vector<Vertex_Out>** pVertices_out, Texture** pDiffuseMap, Texture** pNormalMap, Texture** pSpecularMap, Texture** pGlossinessMap)
+{
+	*pWorldMatrix = &m_WorldMatrix;
+	*pVertices = &m_Vertices;
+	*pIndices = &m_Indices;
+	primitiveTopology = m_PrimitiveTopology;
+	*pVertices_out = &m_Vertices_out;
+
+	*pDiffuseMap = m_pDiffuseMap;
+	*pNormalMap = m_pNormalMap;
+	*pSpecularMap = m_pSpecularMap;
+	*pGlossinessMap = m_pGlossinessMap;
+}
+

@@ -5,6 +5,7 @@
 
 #include "Math.h"
 #include "Timer.h"
+#include "SettingsStruct.h"
 
 namespace dae
 {
@@ -76,6 +77,7 @@ namespace dae
 		void CalculateProjectionMatrix()
 		{
 			// W2
+			fov = tanf((fovAngle * TO_RADIANS) / 2.f);
 			const float invFOV{ 1.f / fov };
 			const float invFarMinusNear{ 1.f / (farClipPlane - nearClipPlane) };
 			projectionMatrix = Matrix{  {invFOV / aspectRatio, 0,	   0,												  0}, 
@@ -87,16 +89,24 @@ namespace dae
 			//DirectX Implementation => https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
 		}
 
-		void Update(const Timer* pTimer)
+		void Update(const Timer* pTimer, DualRasterizerSettings settings)
 		{
 			const float deltaTime = pTimer->GetElapsed();
 
 			//Camera Update Logic
 
 			float fovChangeSpeed{ 10.f };
-			float mouseMovementSpeed{ 15.f };
-			float movementSpeed{ 10.f };
-			float rotationSpeed{ 1.f };
+			float mouseMovementSpeed{ 40.f };
+			float movementSpeed{ 30.f };
+			float rotationSpeed{ 4.f };
+
+			if (settings.rasterizerMode == RasterizerMode::SoftWare)
+			{
+				fovChangeSpeed = 10.f;
+				mouseMovementSpeed = 0.5f;
+				movementSpeed = 10.f;
+				rotationSpeed = 0.01f;
+			}
 
 			//Keyboard Input
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
@@ -117,8 +127,8 @@ namespace dae
 					if (fovAngle < minFovAngle)
 					{
 						fovAngle = minFovAngle;
-						CalculateProjectionMatrix();
 					}
+					CalculateProjectionMatrix();
 				}
 			}
 			else if (pKeyboardState[SDL_SCANCODE_RIGHT])
@@ -129,8 +139,8 @@ namespace dae
 					if (fovAngle > maxFovAngle)
 					{
 						fovAngle = maxFovAngle;
-						CalculateProjectionMatrix();
 					}
+					CalculateProjectionMatrix();
 				}
 			}
 

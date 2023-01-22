@@ -54,9 +54,9 @@ void RasterizerHardware::RenderMesh(const DualRasterizerSettings& settings, Mesh
 	ID3D11InputLayout* pInputLayout;
 	ID3D11Buffer* pVertexBuffer;
 	ID3D11Buffer* pIndexBuffer;
-	uint32_t numIndices;
+	uint32_t numIndices{};
 
-	mesh->GetHardwareInfo(&pEffect, &pInputLayout, &pVertexBuffer, &pIndexBuffer, &numIndices);
+	mesh->GetHardwareInfo(&pEffect, &pInputLayout, &pVertexBuffer, &pIndexBuffer, numIndices);
 
 	//1. Set Primitive Topology
 	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

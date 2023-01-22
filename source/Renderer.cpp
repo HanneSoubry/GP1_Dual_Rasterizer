@@ -144,12 +144,18 @@ namespace dae {
 
 	void Renderer::Update(const Timer* pTimer)
 	{
-		m_Camera.Update(pTimer);
+		m_Camera.Update(pTimer, m_Settings);
 
 		if (m_Settings.rotating)
 		{
 			m_pVehicle->Update(pTimer, m_Camera.viewMatrix * m_Camera.projectionMatrix, m_Camera.invViewMatrix);
 			m_pFire->Update(pTimer, m_Camera.viewMatrix * m_Camera.projectionMatrix, m_Camera.invViewMatrix);
+		}
+		else
+		{
+			// update view and projection matrix (from camera)
+			m_pVehicle->UpdateWorldViewProjectionMatrix(m_Camera.viewMatrix * m_Camera.projectionMatrix, m_Camera.invViewMatrix);
+			m_pFire->UpdateWorldViewProjectionMatrix(m_Camera.viewMatrix * m_Camera.projectionMatrix, m_Camera.invViewMatrix);
 		}
 	}
 
@@ -163,10 +169,10 @@ namespace dae {
 		case dae::RasterizerMode::SoftWare:
 		{
 			// 1. Buffer setup
-			m_pRasterizerSoftware->RenderStart(m_Settings, m_Width, m_Height);
+			m_pRasterizerSoftware->RenderStart(m_Settings);
 
 			// 2. Draw meshes
-			// TODO: draw meshes with software
+			m_pRasterizerSoftware->RenderMesh(m_Settings, m_Camera, m_pVehicle);
 			
 			// 3. Swap buffers
 			m_pRasterizerSoftware->RenderFinish(m_pWindow);

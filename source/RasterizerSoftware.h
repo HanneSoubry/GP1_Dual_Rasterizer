@@ -1,12 +1,12 @@
 #pragma once
 #include "SettingsStruct.h"
+#include "Mesh.h"
+#include "Camera.h"
 
 struct SDL_Window;
 
 namespace dae
 {
-	class Mesh;
-
 	class RasterizerSoftware final
 	{
 	public:
@@ -18,9 +18,9 @@ namespace dae
 		RasterizerSoftware(RasterizerSoftware&& other) = delete;
 		RasterizerSoftware& operator=(RasterizerSoftware&& other) = delete;
 
-		void RenderStart(const DualRasterizerSettings& settings, int width, int height);
-		void RenderMesh(const DualRasterizerSettings& settings, Mesh* mesh) const;
-		void RenderFinish(SDL_Window* pWindow);
+		void RenderStart(const DualRasterizerSettings& settings) const;
+		void RenderMesh(const DualRasterizerSettings& settings, const Camera& camera, Mesh* mesh) const;
+		void RenderFinish(SDL_Window* pWindow) const;
 
 	private:
 		// buffers
@@ -35,9 +35,17 @@ namespace dae
 		const float m_LightIntensity{ 7.f };
 
 		// functions
-		void Projection();
-		void Rasterization();
-		void PixelShading();
+		void ProjectionStage(const Camera& camera, Matrix* pWorldMatrix, std::vector<Vertex>* pVertices, std::vector<Vertex_Out>* pVerticesOut) const;
+		void RasterizationStage(const DualRasterizerSettings& settings, std::vector<Vertex_Out>* pVerticesOut, std::vector<uint32_t>* pIndices, const PrimitiveTopology& primitiveTopology, Texture* pDiffuse, Texture* pNormal, Texture* pSpecular, Texture* pGlossiness) const;
+		ColorRGB PixelShadingStage(const DualRasterizerSettings& settings, const Vertex_Out shadeInfo, Texture* pDiffuse, Texture* pNormal, Texture* pSpecular, Texture* pGlossiness) const;
+
+		// helper functions
+		bool IsInsideFrustrum(const Vector4& vertex) const;
+		float Remap(float value, float min, float max) const;
+
+		// rendering variables
+		int m_ScreenWidth{};
+		int m_ScreenHeight{};
 	};
 
 }
