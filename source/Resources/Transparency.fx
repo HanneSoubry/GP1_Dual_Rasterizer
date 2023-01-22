@@ -1,35 +1,12 @@
 
-// global variable
+// global variables
 float4x4 gWorldViewProj : WorldViewProjection;
 Texture2D gDiffuseMap : DiffuseMap;
 
-// sample states
-SamplerState samPoint
-{
-	Filter = MIN_MAG_MIP_POINT;
-	AddressU = Wrap;	// or mirror, clamp, border
-	AddressV = Wrap;
-};
-SamplerState samLinear
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;	// or mirror, clamp, border
-	AddressV = Wrap;
-};
-SamplerState samAnisotropic
-{
-	Filter = ANISOTROPIC;
-	AddressU = Wrap;	// or mirror, clamp, border
-	AddressV = Wrap;
-};
+SamplerState gSamplerState;
+RasterizerState gRasterizerState;
 
 // other states
-RasterizerState gRasterizerState
-{
-	CullMode = none;
-	FrontCounterClockwise = false; //default
-};
-
 BlendState gBlendState
 {
 	BlendEnable[0] = true;
@@ -110,26 +87,16 @@ VS_OUTPUT VS(VS_INPUT input)
 // Pixel Shader
 // --------------------------------------------
 
-float4 PS_POINT(VS_OUTPUT input) : SV_TARGET
+float4 PS(VS_OUTPUT input) : SV_TARGET
 {
-	return gDiffuseMap.Sample(samPoint, input.UV);
-};
-
-float4 PS_LINEAR(VS_OUTPUT input) : SV_TARGET
-{
-	return gDiffuseMap.Sample(samLinear, input.UV);
-};
-
-float4 PS_ANISOTROPIC(VS_OUTPUT input) : SV_TARGET
-{
-	return gDiffuseMap.Sample(samAnisotropic, input.UV);
+	return gDiffuseMap.Sample(gSamplerState, input.UV);
 };
 
 // --------------------------------------------
 // Technique
 // --------------------------------------------
 
-technique11 PointTechnique
+technique11 DefaultTechnique
 {
 	pass P0
 	{
@@ -138,32 +105,6 @@ technique11 PointTechnique
 		SetBlendState(gBlendState, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
 		SetVertexShader( CompileShader( vs_5_0, VS() ) );
 		SetGeometryShader( NULL );
-		SetPixelShader( CompileShader( ps_5_0, PS_POINT() ) );
-	}
-};
-
-technique11 LinearTechnique
-{
-	pass P0
-	{
-		SetRasterizerState(gRasterizerState);
-		SetDepthStencilState(gDepthStencilState, 0);
-		SetBlendState(gBlendState, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_5_0, PS_LINEAR()));
-	}
-};
-
-technique11 AnisotropicTechnique
-{
-	pass P0
-	{
-		SetRasterizerState(gRasterizerState);
-		SetDepthStencilState(gDepthStencilState, 0);
-		SetBlendState(gBlendState, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_5_0, PS_ANISOTROPIC()));
+		SetPixelShader( CompileShader( ps_5_0, PS() ) );
 	}
 };

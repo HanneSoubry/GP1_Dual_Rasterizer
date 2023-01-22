@@ -74,12 +74,10 @@ void RasterizerHardware::RenderMesh(const DualRasterizerSettings& settings, Mesh
 
 	//5. Draw
 	D3DX11_TECHNIQUE_DESC techDesc{};
-	// TODO: one technique & c++ side change sample mode
-	Effect::EffectTechnique technique{Effect::EffectTechnique::Point};
-	pEffect->GetEffectTechnique(technique)->GetDesc(&techDesc);
+	pEffect->GetEffectTechnique()->GetDesc(&techDesc);
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
-		pEffect->GetEffectTechnique(technique)->GetPassByIndex(p)->Apply(0, m_pDeviceContext);
+		pEffect->GetEffectTechnique()->GetPassByIndex(p)->Apply(0, m_pDeviceContext);
 		m_pDeviceContext->DrawIndexed(numIndices, 0, 0);
 	}
 }

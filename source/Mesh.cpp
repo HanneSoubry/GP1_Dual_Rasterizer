@@ -46,7 +46,7 @@ dae::Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex>& vertices, cons
 	
 	// Create Input Layout for Point Technique
 	D3DX11_PASS_DESC passDesc{};
-	m_pEffect->GetEffectTechnique(Effect::EffectTechnique::Point)->GetPassByIndex(0)->GetDesc(&passDesc);
+	m_pEffect->GetEffectTechnique()->GetPassByIndex(0)->GetDesc(&passDesc);
 	
 	HRESULT result = pDevice->CreateInputLayout(
 		vertexDesc,
@@ -124,6 +124,16 @@ void dae::Mesh::UpdateWorldViewProjectionMatrix(const Matrix& viewProjectionMatr
 	m_pEffect->UpdateWorldViewProjectionMatrix(reinterpret_cast<const float*>(&worldViewProjectionMatrix));
 	m_pEffect->UpdateWorldMatrix(reinterpret_cast<const float*>(&m_WorldMatrix));
 	m_pEffect->UpdateViewInverseMatrix(reinterpret_cast<const float*>(&viewInverseMatrix));
+}
+
+void dae::Mesh::SetSamplerState(ID3D11SamplerState* pNewSamplerState)
+{
+	m_pEffect->SetSamplerState(pNewSamplerState);
+}
+
+void dae::Mesh::SetCullMode(ID3D11RasterizerState* pNewRasterizerState)
+{
+	m_pEffect->SetCullMode(pNewRasterizerState);
 }
 
 void dae::Mesh::SetTranslationMatrix(const Matrix& translationMatrix, const Matrix& viewProjectionMatrix, const Matrix& viewInverseMatrix)

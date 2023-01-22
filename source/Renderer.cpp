@@ -25,7 +25,7 @@ namespace dae {
 		m_pRasterizerSoftware = new RasterizerSoftware(m_pWindow, m_Width, m_Height);
 
 		// Initialize DirectX pipeline
-		const HRESULT result = m_pRasterizerHardware->InitializeDirectX(m_pWindow, m_Width, m_Height);
+		HRESULT result = m_pRasterizerHardware->InitializeDirectX(m_pWindow, m_Width, m_Height);
 		if (result == S_OK)
 		{
 			m_IsInitialized = true;
@@ -43,6 +43,43 @@ namespace dae {
 		// borrow device, DO NOT DESTROY 
 		ID3D11Device* pDevice{ m_pRasterizerHardware->GetDevice() };
 
+		// create rasterizer state
+		D3D11_RASTERIZER_DESC rasterizerDesc{};
+		rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+		rasterizerDesc.CullMode = D3D11_CULL_NONE;
+		rasterizerDesc.FrontCounterClockwise = false;
+		rasterizerDesc.DepthBias = 0;
+		rasterizerDesc.SlopeScaledDepthBias = 0.f;
+		rasterizerDesc.DepthBiasClamp = 0.f;
+		rasterizerDesc.DepthClipEnable = true;
+		rasterizerDesc.ScissorEnable = false;
+		rasterizerDesc.MultisampleEnable = false;
+		rasterizerDesc.AntialiasedLineEnable = false;
+
+		ID3D11RasterizerState* newRasterizerState{};
+
+		result = pDevice->CreateRasterizerState(&rasterizerDesc, &newRasterizerState);
+		if (FAILED(result))
+			std::wcout << L"new rasterizerState failed\n";
+
+		// create sample state
+		D3D11_SAMPLER_DESC samplerDesc{};
+		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.MinLOD = -FLT_MAX;
+		samplerDesc.MaxLOD = FLT_MAX;
+		samplerDesc.MipLODBias = 0.f;
+		samplerDesc.MaxAnisotropy = 1;
+		samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+
+		ID3D11SamplerState* newSamplerState{};
+
+		result = pDevice->CreateSamplerState(&samplerDesc, &newSamplerState);
+		if (FAILED(result))
+			std::wcout << L"new samplerState failed\n";
+
 		// initialize Vehicle
 		EffectShader* shaderEffect = new EffectShader{ pDevice, L"Resources/PosCol3D.fx" };
 		
@@ -55,6 +92,9 @@ namespace dae {
 		shaderEffect->SetNormalMap(pTexVehNormal);
 		shaderEffect->SetSpecularMap(pTexVehSpecular);
 		shaderEffect->SetGlossinessMap(pTexVehGlossiness);
+
+		shaderEffect->SetSamplerState(newSamplerState);
+		shaderEffect->SetCullMode(newRasterizerState);
 			
 		std::vector<Vertex> vertices{};
 		std::vector<uint32_t> indices{};
@@ -75,6 +115,9 @@ namespace dae {
 		
 		Texture* pFireTexture = Texture::LoadFromFile(pDevice, "Resources/fireFX_diffuse.png");
 		transparencyEffect->SetDiffuseMap(pFireTexture);
+
+		transparencyEffect->SetSamplerState(newSamplerState);
+		transparencyEffect->SetCullMode(newRasterizerState);
 		
 		vertices.clear();
 		indices.clear();
@@ -85,6 +128,9 @@ namespace dae {
 
 		m_pFire->SetTranslationMatrix(Matrix::CreateTranslation(0, 0, 50), m_Camera.viewMatrix * m_Camera.projectionMatrix, m_Camera.invViewMatrix);
 		m_pFire->SetOnlyHardWare(true);
+
+		newSamplerState->Release();
+		newRasterizerState->Release();
 	}
 
 	Renderer::~Renderer()
@@ -191,21 +237,47 @@ namespace dae {
 		std::cout << COUT_COLOR_YELLOW;
 		std::cout << "**(SHARED) CullMode = ";
 
+		D3D11_RASTERIZER_DESC rasterizerDesc{};
+		rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+		rasterizerDesc.FrontCounterClockwise = false;
+		rasterizerDesc.DepthBias = 0;
+		rasterizerDesc.SlopeScaledDepthBias = 0.f;
+		rasterizerDesc.DepthBiasClamp = 0.f;
+		rasterizerDesc.DepthClipEnable = true;
+		rasterizerDesc.ScissorEnable = false;
+		rasterizerDesc.MultisampleEnable = false;
+		rasterizerDesc.AntialiasedLineEnable = false;
+
 		switch (m_Settings.cullMode)
 		{
 		case dae::CullMode::Back:
 			m_Settings.cullMode = CullMode::Front;
+			rasterizerDesc.CullMode = D3D11_CULL_FRONT;
 			std::cout << "FRONT\n";
 			break;
 		case dae::CullMode::Front:
 			m_Settings.cullMode = CullMode::None;
+			rasterizerDesc.CullMode = D3D11_CULL_NONE;
 			std::cout << "NONE\n";
 			break;
 		case dae::CullMode::None:
 			m_Settings.cullMode = CullMode::Back;
+			rasterizerDesc.CullMode = D3D11_CULL_BACK;
 			std::cout << "BACK\n";
 			break;
 		}
+
+		ID3D11Device* pDevice = m_pRasterizerHardware->GetDevice();
+		ID3D11RasterizerState* newRasterizerState{};
+
+		HRESULT result = pDevice->CreateRasterizerState(&rasterizerDesc, &newRasterizerState);
+		if (FAILED(result))
+			std::wcout << L"new rasterizerState failed\n";
+
+		m_pVehicle->SetCullMode(newRasterizerState);
+		m_pFire->SetCullMode(newRasterizerState);
+
+		newRasterizerState->Release();
 
 		std::cout << COUT_COLOR_RESET;
 	}
@@ -250,21 +322,46 @@ namespace dae {
 			std::cout << COUT_COLOR_GREEN;
 			std::cout << "**(HARDWARE) Show FireFX = ";
 
+			D3D11_SAMPLER_DESC samplerDesc{};
+			samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.MinLOD = -FLT_MAX;
+			samplerDesc.MaxLOD = FLT_MAX;
+			samplerDesc.MipLODBias = 0.f;
+			samplerDesc.MaxAnisotropy = 1;
+			samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+
 			switch (m_Settings.sampleState)
 			{
 			case dae::SampleState::Point:
 				m_Settings.sampleState = SampleState::Linear;
+				samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 				std::cout << "LINEAR\n";
 				break;
 			case dae::SampleState::Linear:
 				m_Settings.sampleState = SampleState::Anisotropic;
+				samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 				std::cout << "ANISOTROPIC\n";
 				break;
 			case dae::SampleState::Anisotropic:
 				m_Settings.sampleState = SampleState::Point;
+				samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 				std::cout << "POINT\n";
 				break;
 			}
+
+			ID3D11Device* pDevice = m_pRasterizerHardware->GetDevice();
+			ID3D11SamplerState* newSamplerState{};
+
+			HRESULT result = pDevice->CreateSamplerState(&samplerDesc, &newSamplerState);
+			if (FAILED(result))
+				std::wcout << L"new samplerState failed\n";
+
+			m_pVehicle->SetSamplerState(newSamplerState);
+			m_pFire->SetSamplerState(newSamplerState);
+
+			newSamplerState->Release();
 
 			std::cout << COUT_COLOR_RESET;
 		}

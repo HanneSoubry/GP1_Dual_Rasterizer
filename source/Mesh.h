@@ -47,6 +47,9 @@ namespace dae
 		void UpdateWorldViewProjectionMatrix(const Matrix& viewProjectionMatrix, const Matrix& viewInverseMatrix) const;
 
 		void SetOnlyHardWare(bool onlyHardware) { m_OnlyHardware = onlyHardware; }
+		void SetSamplerState(ID3D11SamplerState* pNewSamplerState);
+		void SetCullMode(ID3D11RasterizerState* pNewRasterizerState);
+
 		void SetRotationSpeed(float speed) { m_RotationSpeed = speed; }
 		void SetTranslationMatrix(const Matrix& translationMatrix, const Matrix& viewProjectionMatrix, const Matrix& viewInverseMatrix);
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "SettingsStruct.h"
 
 namespace dae
 {
@@ -7,14 +8,6 @@ namespace dae
 	class Effect
 	{
 	public:
-
-		enum class EffectTechnique
-		{
-			Point,
-			Linear,
-			Anisotropic
-		};
-
 		Effect(ID3D11Device* pDevice, const std::wstring& assetFile);
 		virtual ~Effect();
 
@@ -24,7 +17,10 @@ namespace dae
 		Effect& operator=(Effect&& other) = delete;
 
 		ID3DX11Effect* GetEffect() { return m_pEffect; }
-		ID3DX11EffectTechnique* GetEffectTechnique(EffectTechnique technique);
+		ID3DX11EffectTechnique* GetEffectTechnique() { return m_pTechnique; }
+
+		void SetSamplerState(ID3D11SamplerState* pNewSamplerState);
+		void SetCullMode(ID3D11RasterizerState* pNewRasterizerState);
 
 		void UpdateWorldViewProjectionMatrix(const float* matrix);
 
@@ -37,9 +33,9 @@ namespace dae
 		ID3DX11EffectMatrixVariable* m_pMatWorldViewProjVariable{};
 
 	private:
-		ID3DX11EffectTechnique* m_pTechniquePoint{};
-		ID3DX11EffectTechnique* m_pTechniqueLinear{};
-		ID3DX11EffectTechnique* m_pTechniqueAnisotropic{};
+		ID3DX11EffectTechnique* m_pTechnique{};
+		ID3DX11EffectSamplerVariable* m_pSamplerState{};
+		ID3DX11EffectRasterizerVariable* m_pRasterizerState{};
 
 		static ID3DX11Effect* LoadEffect(ID3D11Device* pDevice, const std::wstring& assetFile);
 	};

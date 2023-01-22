@@ -10,47 +10,48 @@ Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile)
 	m_pEffect = LoadEffect(pDevice, assetFile);
 
 	// techniques
-	m_pTechniquePoint = m_pEffect->GetTechniqueByName("PointTechnique");
-	if (!m_pTechniquePoint->IsValid())
-		std::wcout << L"Technique Point not valid\n";
-
-	m_pTechniqueLinear = m_pEffect->GetTechniqueByName("LinearTechnique");
-	if (!m_pTechniqueLinear->IsValid())
-		std::wcout << L"Technique Linear not valid\n";
-
-	m_pTechniqueAnisotropic = m_pEffect->GetTechniqueByName("AnisotropicTechnique");
-	if (!m_pTechniqueAnisotropic->IsValid())
-		std::wcout << L"Technique Anisotropic not valid\n";
+	m_pTechnique = m_pEffect->GetTechniqueByName("DefaultTechnique");
+	if (!m_pTechnique->IsValid())
+		std::wcout << L"Technique not valid\n";
 
 	// variables
 	m_pMatWorldViewProjVariable = m_pEffect->GetVariableByName("gWorldViewProj")->AsMatrix();
 	if (!m_pMatWorldViewProjVariable->IsValid())
 		std::wcout << L"m_pMatWorldViewProjVariable not valid!\n";
 
+	m_pSamplerState = m_pEffect->GetVariableByName("gSamplerState")->AsSampler();
+	if(!m_pSamplerState->IsValid())
+		std::wcout << L"m_pSamplerState not valid!\n";
+
+	m_pRasterizerState = m_pEffect->GetVariableByName("gRasterizerState")->AsRasterizer();
+	if (!m_pRasterizerState->IsValid())
+		std::wcout << L"m_pRasterizerState not valid!\n";
 }
 
 Effect::~Effect()
 {
+	m_pSamplerState->Release();
+	m_pRasterizerState->Release();
+
 	m_pMatWorldViewProjVariable->Release();
 
-	m_pTechniqueAnisotropic->Release();
-	m_pTechniqueLinear->Release();
-	m_pTechniquePoint->Release();
+	m_pTechnique->Release();
 
 	m_pEffect->Release();
 }
 
-ID3DX11EffectTechnique* dae::Effect::GetEffectTechnique(EffectTechnique technique)
+void dae::Effect::SetSamplerState(ID3D11SamplerState* pNewSamplerState)
 {
-	switch (technique)
-	{
-	case dae::Effect::EffectTechnique::Point:
-		return m_pTechniquePoint;
-	case dae::Effect::EffectTechnique::Linear:
-		return m_pTechniqueLinear;
-	case dae::Effect::EffectTechnique::Anisotropic:
-		return m_pTechniqueAnisotropic;
-	}
+	HRESULT result = m_pSamplerState->SetSampler(0, pNewSamplerState);
+	if (FAILED(result))
+		std::wcout << L"failed to set new sampler state\n";
+}
+
+void dae::Effect::SetCullMode(ID3D11RasterizerState* pNewRasterizerState)
+{
+	HRESULT result = m_pRasterizerState->SetRasterizerState(0, pNewRasterizerState);
+	if (FAILED(result))
+		std::wcout << L"failed to set new rasterizer state\n";
 }
 
 void dae::Effect::UpdateWorldViewProjectionMatrix(const float* matrix)

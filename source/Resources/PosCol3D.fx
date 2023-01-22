@@ -1,5 +1,5 @@
 
-// global variable
+// global variables
 float4x4 gWorldViewProj : WorldViewProjection;
 float4x4 gWorldMatrix : World;
 float4x4 gViewInverseMatrix : ViewInverse;
@@ -16,33 +16,10 @@ float gPi = 3.141592653589793f;
 float gShininess = 25.0f;
 float4 gAmbient = float4(0.025f, 0.025f, 0.025f, 1.0f);
 
-// sample states
-SamplerState samPoint
-{
-	Filter = MIN_MAG_MIP_POINT;
-	AddressU = Wrap;	// or mirror, clamp, border
-	AddressV = Wrap;
-};
-SamplerState samLinear
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;	// or mirror, clamp, border
-	AddressV = Wrap;
-};
-SamplerState samAnisotropic
-{
-	Filter = ANISOTROPIC;
-	AddressU = Wrap;	// or mirror, clamp, border
-	AddressV = Wrap;
-};
+SamplerState gSamplerState;
+RasterizerState gRasterizerState;
 
 // other states
-RasterizerState gRasterizerState
-{
-	CullMode = back;
-	FrontCounterClockwise = false; //default
-};
-
 BlendState gBlendState
 {
 	BlendEnable[0] = false;
@@ -117,7 +94,7 @@ float4 Phong(float4 color, float specularReflection, float exponent, float3 ligh
 // Pixel Shader
 // --------------------------------------------
 
-float4 PS_POINT(VS_OUTPUT input) : SV_TARGET
+float4 PS(VS_OUTPUT input) : SV_TARGET
 {
 	// normal map
 	float3 sampledNormal = input.Normal;
@@ -128,7 +105,7 @@ float4 PS_POINT(VS_OUTPUT input) : SV_TARGET
 										float4(sampledNormal, 0.0f), 
 										float4(0.0f, 0.0f, 0.0f, 1.0f));
 	
-	sampledNormal = gNormalMap.Sample(samPoint, input.UV).rgb;
+	sampledNormal = gNormalMap.Sample(gSamplerState, input.UV).rgb;
 	sampledNormal = 2.0f * sampledNormal - float3(1.0f, 1.0f, 1.0f);
 	sampledNormal = normalize(mul(float4(sampledNormal, 0.0f), tangentSpace)).rgb;
 
@@ -138,77 +115,13 @@ float4 PS_POINT(VS_OUTPUT input) : SV_TARGET
 
 	// lambert diffuse
 	float diffuseReflection = 1.f;
-	float4 diffuse = Lambert(diffuseReflection, gDiffuseMap.Sample(samPoint, input.UV));
+	float4 diffuse = Lambert(diffuseReflection, gDiffuseMap.Sample(gSamplerState, input.UV));
 
 	// phong
 	float specularReflection = 1.f;
-	float exponent = gGlossinessMap.Sample(samPoint, input.UV).r * gShininess;
+	float exponent = gGlossinessMap.Sample(gSamplerState, input.UV).r * gShininess;
 	float3 viewDirection = normalize(input.WorldPosition.xyz - gViewInverseMatrix[3].xyz);
-	float4 specular = Phong(gSpecularMap.Sample(samPoint, input.UV), specularReflection, exponent, gLightDirection, viewDirection, sampledNormal);
-
-	return (diffuse * gLightIntensity + specular + gAmbient) * observedArea;
-};
-
-float4 PS_LINEAR(VS_OUTPUT input) : SV_TARGET
-{
-	// normal map
-	float3 sampledNormal = input.Normal;
-
-	float3 binormal = normalize(cross(sampledNormal, input.Tangent));
-	float4x4 tangentSpace = float4x4(	float4(input.Tangent, 0.0f),
-										float4(binormal, 0.0f),
-										float4(sampledNormal, 0.0f),
-										float4(0.0f, 0.0f, 0.0f, 1.0f));
-
-	sampledNormal = gNormalMap.Sample(samLinear, input.UV).rgb;
-	sampledNormal = 2.0f * sampledNormal - float3(1.0f, 1.0f, 1.0f);
-	sampledNormal = normalize(mul(float4(sampledNormal, 0.0f), tangentSpace)).rgb;
-
-	// observedArea
-	float observedArea = saturate(dot(sampledNormal, -gLightDirection));
-	float3 observedAreaColor = float3(observedArea, observedArea, observedArea);
-
-	// lambert diffuse
-	float diffuseReflection = 1.f;
-	float4 diffuse = Lambert(diffuseReflection, gDiffuseMap.Sample(samLinear, input.UV));
-
-	// phong
-	float specularReflection = 1.f;
-	float exponent = gGlossinessMap.Sample(samLinear, input.UV).r * gShininess;
-	float3 viewDirection = normalize(input.WorldPosition.xyz - gViewInverseMatrix[3].xyz);
-	float4 specular = Phong(gSpecularMap.Sample(samLinear, input.UV), specularReflection, exponent, gLightDirection, viewDirection, sampledNormal);
-
-	return (diffuse * gLightIntensity + specular + gAmbient) * observedArea;
-};
-
-float4 PS_ANISOTROPIC(VS_OUTPUT input) : SV_TARGET
-{
-	// normal map
-	float3 sampledNormal = input.Normal;
-
-	float3 binormal = normalize(cross(sampledNormal, input.Tangent));
-	float4x4 tangentSpace = float4x4(	float4(input.Tangent, 0.0f),
-										float4(binormal, 0.0f),
-										float4(sampledNormal, 0.0f),
-										float4(0.0f, 0.0f, 0.0f, 1.0f));
-
-	sampledNormal = gNormalMap.Sample(samAnisotropic, input.UV).rgb;
-	sampledNormal = 2.0f * sampledNormal - float3(1.0f, 1.0f, 1.0f);
-	sampledNormal = normalize(mul(float4(sampledNormal, 0.0f), tangentSpace)).rgb;
-
-	// observedArea
-	float observedArea = saturate(dot(sampledNormal, -gLightDirection));
-	float3 observedAreaColor = float3(observedArea, observedArea, observedArea);
-
-	// lambert diffuse
-	float diffuseReflection = 1.f;
-	float4 diffuse = Lambert(diffuseReflection, gDiffuseMap.Sample(samAnisotropic, input.UV));
-
-	// phong
-	float specularReflection = 1.f;
-	float exponent = gGlossinessMap.Sample(samAnisotropic, input.UV).r * gShininess;
-	float3 viewDirection = normalize(input.WorldPosition.xyz - gViewInverseMatrix[3].xyz);
-	float4 specular = Phong(gSpecularMap.Sample(samAnisotropic, input.UV), specularReflection, exponent, gLightDirection, viewDirection, sampledNormal);
+	float4 specular = Phong(gSpecularMap.Sample(gSamplerState, input.UV), specularReflection, exponent, gLightDirection, viewDirection, sampledNormal);
 
 	return (diffuse * gLightIntensity + specular + gAmbient) * observedArea;
 };
@@ -217,7 +130,7 @@ float4 PS_ANISOTROPIC(VS_OUTPUT input) : SV_TARGET
 // Technique
 // --------------------------------------------
 
-technique11 PointTechnique
+technique11 DefaultTechnique
 {
 	pass P0
 	{
@@ -226,32 +139,6 @@ technique11 PointTechnique
 		SetBlendState(gBlendState, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
 		SetVertexShader( CompileShader( vs_5_0, VS() ) );
 		SetGeometryShader( NULL );
-		SetPixelShader( CompileShader( ps_5_0, PS_POINT() ) );
-	}
-};
-
-technique11 LinearTechnique
-{
-	pass P0
-	{
-		SetRasterizerState(gRasterizerState);
-		SetDepthStencilState(gDepthStencilState, 0);
-		SetBlendState(gBlendState, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_5_0, PS_LINEAR()));
-	}
-};
-
-technique11 AnisotropicTechnique
-{
-	pass P0
-	{
-		SetRasterizerState(gRasterizerState);
-		SetDepthStencilState(gDepthStencilState, 0);
-		SetBlendState(gBlendState, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
-		SetVertexShader(CompileShader(vs_5_0, VS()));
-		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_5_0, PS_ANISOTROPIC()));
+		SetPixelShader( CompileShader( ps_5_0, PS() ) );
 	}
 };
